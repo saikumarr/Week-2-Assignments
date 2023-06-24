@@ -39,11 +39,71 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-
-const app = express();
-
-app.use(bodyParser.json());
-
-module.exports = app;
+  const express = require('express');
+  const bodyParser = require('body-parser');
+  const { v4: uuidv4 } = require('uuid');
+  
+  const app = express();
+  
+  app.use(bodyParser.json());
+  
+  app.listen(3000, () => {
+      console.log('The app is listening to port 3000')
+  })
+  
+  let todos = [{ title: 'node.js', description: 'Learn Node.js', id: '1' }]
+  app.get('/todos', (req, res) => {
+    console.log(todos)
+      res.send(todos)
+  })
+  
+  // /todos/:id
+  app.get('/todos/:id', (req, res) => {
+      if (req.params.id) {
+          const filteredTodo = todos.filter(todo => {
+              console.log(todo.id === req.params.id, todo.id, req.params.id)
+              if (todo.id === req.params.id)
+                  return todo
+          })
+          console.log(filteredTodo)
+          res.send(filteredTodo)
+      }
+  })
+  
+  app.post('/todos', (req, res) => {
+      const newTodo = { ...req.body, id: uuidv4() }
+      todos.push(newTodo)
+      res.send({ id: newTodo.id })
+  })
+  
+  app.put('/todos/:id', (req, res) => {
+      let found = false
+      todos = todos.forEach(todo => {
+          if (todo.id === req.params.id) {
+              found = true
+              console.log({ ...todo, ...req.body })
+              return { ...todo, ...req.body }
+          }
+      })
+  
+      found ? res.status(200).send('OK') : res.status(404).send('No Todo with the id to update')
+  
+  })
+  
+  app.delete('/todos/:id', (req, res) => {
+      let found = false
+      todos = todos.filter(todo => {
+          if (todo.id !== req.params.id) {
+              found = true
+              return todo
+          }
+      })
+  
+      found ? res.status(200).send('OK') : res.status(404).send('No Todo with the id to delete')
+  
+  })
+  
+  
+  
+  module.exports = app;
+  
